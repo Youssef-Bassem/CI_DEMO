@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Unit Tests and Coverage
         run: |
-          pytest --cov=main --cov-fail-under=90 unittest.py
+          pytest --cov=main --cov-fail-under=90 test.py
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v2
