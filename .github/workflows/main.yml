@@ -7,12 +7,31 @@ on:
   pull_request:
     branches:
       - main
-  # Piepline gets triggered on push or PR to main branch
+  # Pipeline gets triggered on push or PR to the main branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
+      # build step (replace with actual commands if needed)
+      - name: build
+        run: echo "build Step"
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    needs: build  # Depends on the build job
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -21,19 +40,50 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-
+      
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt # Install dependencies from requirements.txt
+          pip install -r requirements.txt
 
-      # Static Analysis with pylint
       - name: Run Static Analysis
         run: |
-          pylint main.py --fail-under=8.0  # Set the minimum score for linting pass
+          pylint main.py --fail-under=8.0
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: build  # Depends on the build job
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
       - name: Run Unit Tests and Coverage
         run: |
           pytest --cov=main --cov-fail-under=90 test.py
+
+  codecov:
+    runs-on: ubuntu-latest
+    needs: unit-tests  # Depends on the unit-tests job
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v2
