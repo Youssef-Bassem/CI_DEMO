@@ -88,14 +88,3 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Token retrieved securely from GitHub Secrets
-
-  auto-merge:
-    runs-on: ubuntu-latest
-    needs: [static-analysis, unit-tests, codecov]  # Requires all previous jobs to succeed
-    if: github.event.pull_request.mergeable_state == 'clean' && github.event.pull_request.mergeable
-    steps:
-      - name: Merge Pull Request
-        uses: "peter-evans/merge-pull-request@v4"
-        with:
-          merge-method: 'merge'
-          token: ${{ secrets.GITHUB_TOKEN }}
