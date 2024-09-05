@@ -25,8 +25,9 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Build
-        run: echo "Build step"  # Replace with actual build commands if needed
+      - name: Check for Syntax Errors
+        run: |
+          python -m py_compile main.py
 
   static-analysis:
     runs-on: ubuntu-latest
