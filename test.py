@@ -8,11 +8,11 @@ class TestDummy(unittest.TestCase):
     def test_subtract(self):
         self.assertEqual(main.subtract(5, 3), 2)
 
-    # def test_division(self):
-    #     self.assertEqual(main.division(6, 2), 3)
+    def test_division(self):
+        self.assertEqual(main.division(6, 2), 3)
 
-    # def test_multiplication(self):
-    #     self.assertEqual(main.multiplication(6, 2), 12)
+    def test_multiplication(self):
+        self.assertEqual(main.multiplication(6, 2), 12)
 
         
 

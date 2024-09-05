@@ -58,7 +58,7 @@ def multiplication(a, b):
     return a * b
 
 # Test the functions
-print(add(6, 2))
+prinaaaaaaaaat(add(6, 2))
 print(subtract(6, 2))
 # print(division(6, 2))
 # print(multiplication(6, 2))
