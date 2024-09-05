@@ -27,7 +27,7 @@ jobs:
 
       - name: Check for Syntax Errors
         run: |
-          python -m py_compile main.py
+          python main.py
 
   static-analysis:
     runs-on: ubuntu-latest
