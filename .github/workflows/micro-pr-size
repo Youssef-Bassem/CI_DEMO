@@ -1,0 +1,85 @@
+name: PR Size Check for Micro PRs
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  pr_size_check_for_micro_pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch Changed Files
+        id: fetch_files
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            // Filter out changes in the 'src/assets/' folder
+            const excludedFiles = files.filter(file => file.filename.startsWith('src/assets/'));
+            const includedFiles = files.filter(file => !file.filename.startsWith('src/assets/'));
+
+            // Sum up additions, deletions, and file counts for included files
+            const additions = includedFiles.reduce((sum, file) => sum + file.additions, 0);
+            const deletions = includedFiles.reduce((sum, file) => sum + file.deletions, 0);
+            const changedFiles = includedFiles.length;
+
+            core.setOutput('additions', additions);
+            core.setOutput('deletions', deletions);
+            core.setOutput('changed_files', changedFiles);
+
+            console.log('Included files:', includedFiles.map(file => file.filename));
+            console.log('Excluded files:', excludedFiles.map(file => file.filename));
+
+      - name: Check PR Size
+        id: check_pr_size
+        run: |
+          echo "Additions: ${{ steps.fetch_files.outputs.additions }}"
+          echo "Deletions: ${{ steps.fetch_files.outputs.deletions }}"
+          echo "Changed files: ${{ steps.fetch_files.outputs.changed_files }}"
+
+          max_additions=1000
+          max_deletions=1000
+          max_changed_files=10
+
+          if [ "${{ steps.fetch_files.outputs.additions }}" -gt "$max_additions" ] || \
+            [ "${{ steps.fetch_files.outputs.deletions }}" -gt "$max_deletions" ] || \
+            [ "${{ steps.fetch_files.outputs.changed_files }}" -gt "$max_changed_files" ]; then
+          echo "🚨 PR exceeds allowed limits when excluding changes in 'src/assets/' folder."
+          echo "exceeded=true" >> $GITHUB_ENV
+           exit 1
+          else
+            echo "exceeded=false" >> $GITHUB_ENV
+          fi
+
+      - name: Add "Micro PR Needed" Label
+        if: env.exceeded == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            const label = "Micro PR Needed";
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+
+            const hasLabel = labels.some(existingLabel => existingLabel.name === label);
+            if (!hasLabel) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: [label],
+              });
+              console.log(Added label "${label}" to PR.);
+            } else {
+              console.log(Label "${label}" already exists.);
+            }
